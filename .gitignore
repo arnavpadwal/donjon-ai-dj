@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Runtime data: SQLite DB, downloaded audio, artwork cache, credentials, logs
+data/
+library/
+mixxx_profile/
+*.log
+backup-*.zip
+
+# Generated demo tracks (the app ships only the four DJ FX overlays)
+fx/demo_*
+
+# Local secrets and editor/OS noise
+.env
+.DS_Store
+Thumbs.db
+node_modules/
+test-results/
+playwright-report/
