@@ -91,6 +91,9 @@ class MixxxEngine:
         self._stop = threading.Event()
         self._win_id: str | None = None
         self._first_load = True
+        # Mixxx's sync button is a toggle; tracking its state lets us turn it
+        # off deterministically after every blend.
+        self.sync_on = {1: False, 2: False}
 
     # ----------------------------------------------------------------- logging
     def log(self, message: str, kind: str = "info") -> None:
@@ -626,6 +629,10 @@ RescanOnStartup 1
             if not loaded:
                 self.log(f"Deck {'AB'[deck-1]} did not confirm the load; "
                          "continuing with the next attempt", "warn")
+            # A fresh load always starts at the track's own tempo.  Any old
+            # sync/rate left from the previous blend must not carry over.
+            self.set_sync(deck, False)
+            self.rate_reset(deck)
             d.track = track
             d.duration = float(track.get("duration") or 0)
             d.bpm = float(track.get("bpm") or 120)
@@ -677,8 +684,18 @@ RescanOnStartup 1
         d.base_pos = 0.0
         d.playing = False
 
-    def sync(self, deck: int) -> None:
+    def set_sync(self, deck: int, on: bool) -> None:
+        if self.sync_on.get(deck) == on:
+            return
         self._deck_key(deck, "sync")
+        self.sync_on[deck] = on
+
+    def rate_reset(self, deck: int) -> None:
+        """Return the deck's pitch fader to its natural BPM."""
+        self._deck_key(deck, "rate_reset")
+
+    def sync(self, deck: int) -> None:
+        self.set_sync(deck, not self.sync_on.get(deck, False))
 
     def cue(self, deck: int) -> None:
         self._deck_key(deck, "cue")
@@ -748,8 +765,12 @@ RescanOnStartup 1
                 except Exception:
                     pass
 
-        # Incoming deck: synced, low end held back.
-        self.sync(in_deck)
+        # Incoming deck: natural rate first, then synced to the outgoing's
+        # natural BPM for the blend.  A stale slow master must never drag the
+        # whole set down.
+        self.set_sync(in_deck, False)
+        self.rate_reset(in_deck)
+        self.set_sync(in_deck, True)
         self.eq(in_deck, "low", True)
         self.eq(in_deck, "mid", False)
         self.eq(in_deck, "high", False)
@@ -796,6 +817,10 @@ RescanOnStartup 1
         self.eq(in_deck, "high", False)
         self.loop(out_deck, roll=False)   # clear the 4-beat fill
         self.stop(out_deck)               # unconditional [ChannelN] stop
+        # The blend is over: release sync and play the new track at its own
+        # tempo, so the next transition cannot inherit a slowed-down master.
+        self.set_sync(in_deck, False)
+        self.rate_reset(in_deck)
         self.restore_levels()
         self.current_deck = in_deck
         report(1.0, "mix complete")

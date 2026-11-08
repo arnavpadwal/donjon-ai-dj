@@ -61,6 +61,7 @@ KEYMAP = {
     # transport / deck 1
     "d1_load": "alt+shift+l",
     "d1_eject": "alt+shift+x",
+    "d1_rate_reset": "ctrl+shift+y",
     "d1_play": "ctrl+alt+q",
     "d1_stop": "ctrl+alt+shift+q",
     "d1_sync": "ctrl+alt+a",
@@ -84,6 +85,7 @@ KEYMAP = {
     # deck 2
     "d2_load": "alt+shift+n",
     "d2_eject": "alt+shift+z",
+    "d2_rate_reset": "ctrl+shift+z",
     "d2_play": "ctrl+alt+w",
     "d2_stop": "ctrl+alt+shift+w",
     "d2_sync": "ctrl+alt+s",
@@ -135,6 +137,7 @@ sync_enabled {d1_sync}
 cue_default {d1_cue}
 start {d1_start}
 eject {d1_eject}
+rate_set_default {d1_rate_reset}
 LoadSelectedTrack {d1_load}
 volume_set_one {d1_vol_one}
 beatloop_4_toggle {d1_loop4}
@@ -151,6 +154,7 @@ sync_enabled {d2_sync}
 cue_default {d2_cue}
 start {d2_start}
 eject {d2_eject}
+rate_set_default {d2_rate_reset}
 LoadSelectedTrack {d2_load}
 volume_set_one {d2_vol_one}
 beatloop_4_toggle {d2_loop4}
